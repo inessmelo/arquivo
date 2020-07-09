@@ -39,7 +39,7 @@ public class Produto {
     }
     
     public double total(){
-        return preco * qde;
+        return getPreco() * getQde();
     }
     
 }
