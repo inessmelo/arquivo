@@ -1,8 +1,10 @@
 package aplicacao;
 
 import entidade.Produto;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,38 +33,70 @@ public class Programa {
             System.out.print("Quantidade: ");
             int qde = dados.nextInt();
             lista.add(new Produto(nome, valor, qde));
-            System.out.println("==============================");
+            System.out.println();
         }
         
+        System.out.println("====================================");
+        System.out.println("        CAMINHO PARA SALVAR         ");
+        System.out.println("====================================");
 
-        System.out.println("Caminho para salvar lista de compras: ");
+        System.out.println("Caminho: ");
         dados.nextLine();
-        String caminho = dados.nextLine();
-        
+        String c = dados.nextLine();        
         //INFORMA O NOME DO ARQUIVO NA EXTENÇÃO DE EXCEL
-        File arquivo = new File(caminho + "\\summary.csv");  
+        File caminho = new File(c + "\\itens.csv");  
         
-        //CRIA O ARQUIVO (FILEWRITER)
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(arquivo, true))){
-            for(Produto linha: lista){
-                //ESCREVE CADA ITEM EM UMA LINHA
-                bw.write(linha.getNome());
-                bw.write(linha.getQde());
-                //QUEBRA DE LINHA NO ARQUIVO
-                bw.newLine();
+        String novoCaminho = caminho.getParent();
+        //VERIFICA SE RETORNA V O DIRETORIO(MKDIR)
+        boolean novo = new File(caminho + "\\ItensVendido").mkdir();
+        //CRIA UM NOVO CAMINHO PARA SALVAR OUTRO ARQUIVO
+        String arquivo = novoCaminho + "\\arquivoNovo.csv";
+        //CRIEI UM ARQUIVO *CSV E O USUSARIO SALVOU OS DADOS DENTRO E ACRESCENTA COM O TRUE
+        try(BufferedWriter bw = new BufferedWriter(new FileWriter(caminho))){  
+            
+            for (Produto item: lista){                
+                //SALVA EM CADA LINHA DO EXCEL
+                bw.write(item.getQde() + "," + item.getNome() + "," + String.format("%.2f", item.getPreco()));
+                //ESCREVE UMA NOVA LINHA
+                bw.newLine();                  
             }
         }
-        catch(IOException e){
+        catch (IOException e){
+            System.out.println("Erro: " + e.getMessage());
+        }
+        
+        try(BufferedReader br = new BufferedReader(new FileReader(caminho))){
+            //LENDO UMA LINHA DO ARQUIVO
+            String itemNovo = br.readLine();
+            while (itemNovo != null){
+                String[] lendo = itemNovo.split(",");
+                int qde = Integer.parseInt(lendo[0]);
+                String nome = lendo[1];
+                double valor = Double.parseDouble(lendo[2]);
+                
+                //INSTANCIA UMA NOVA LISTA NO ARQUIVO NOVO
+                lista.add(new Produto(nome, valor, qde));
+                //LENDO MAIS UMA LINHA
+                itemNovo = br.readLine();
+            }
+            
+            try (BufferedWriter b = new BufferedWriter(new FileWriter(arquivo))){
+                
+                for(Produto item: lista){
+                    b.write(item.getNome() + String.format(" %.2f", item.total()));
+                    b.newLine();
+                }
+            }
+            catch (IOException e){
+                e.printStackTrace();
+            }
+        }
+        
+        catch (IOException e){
             e.printStackTrace();
         }
         
-        System.out.println("==============================");
-        System.out.println("       LISTA DE COMPRAS       ");
-        System.out.println("==============================");
-        for(Produto comp: lista){
-            System.out.println(comp);
-        }
-        
+        System.out.println("====================================");
         dados.close();
     }
     
